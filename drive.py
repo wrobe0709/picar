@@ -1,5 +1,8 @@
-import RPi.GPIO as gpio
+import os
+import signal
+from subprocess import Popen
 import time
+import RPi.GPIO as gpio
 from sensor import sensor_distance, sensor_init, sensor_settle
 
 
@@ -10,6 +13,14 @@ def init():
     gpio.setup(11, gpio.OUT)
     gpio.setup(13, gpio.OUT)
     gpio.setup(15, gpio.OUT)
+
+
+def camera_init():
+    devnull = open(os.devnull, 'w')
+    # pid = Popen(['./camera.sh', '&'], stdout=devnull, stderr=devnull)
+    pro = Popen(['./camera.sh', '&'], stdout=devnull, stderr=devnull,
+                shell=True, preexec_fn=os.setsid)
+    return pro
 
 
 def avoid_right():
@@ -39,49 +50,50 @@ def forward(seconds):
     """Drive car forward"""
     drive_time = 0
     init()
-    gpio.output(11, gpio.HIGH)
     gpio.output(15, gpio.HIGH)
-    while drive_time < seconds:
-        sensor_init()
-        distance = sensor_distance()
-        init()
-        if distance < 20:
-            gpio.output(11, gpio.LOW)
-            gpio.output(15, gpio.LOW)
-            avoid_right()
-            break
-        else:
-            drive_time += .25
-            time.sleep(.25)
-    gpio.output(11, gpio.LOW)
+    gpio.output(7, gpio.HIGH)
+    time.sleep(seconds)
+    # while drive_time < seconds:
+    #     sensor_init()
+    #     distance = sensor_distance()
+    #     init()
+    #     if distance < 20:
+    #         gpio.output(15, gpio.LOW)
+    #         gpio.output(7, gpio.LOW)
+    #         avoid_right()
+    #         break
+    #     else:
+    #         drive_time += .25
+    #         time.sleep(.25)
     gpio.output(15, gpio.LOW)
+    gpio.output(7, gpio.LOW)
 
 
 def reverse(seconds):
     """Drive car in reverse"""
-    gpio.output(7, gpio.HIGH)
     gpio.output(13, gpio.HIGH)
+    gpio.output(11, gpio.HIGH)
     time.sleep(seconds)
-    gpio.output(7, gpio.LOW)
     gpio.output(13, gpio.LOW)
+    gpio.output(11, gpio.LOW)
 
 
 def right():
     """Drive car right"""
+    gpio.output(13, gpio.HIGH)
     gpio.output(7, gpio.HIGH)
-    gpio.output(15, gpio.HIGH)
     time.sleep(.15)
+    gpio.output(13, gpio.LOW)
     gpio.output(7, gpio.LOW)
-    gpio.output(15, gpio.LOW)
 
 
 def left():
     """Drive car left"""
+    gpio.output(15, gpio.HIGH)
     gpio.output(11, gpio.HIGH)
-    gpio.output(13, gpio.HIGH)
     time.sleep(.15)
+    gpio.output(15, gpio.LOW)
     gpio.output(11, gpio.LOW)
-    gpio.output(13, gpio.LOW)
 
 
 def drive():
@@ -106,10 +118,12 @@ def drive():
 def main():
     """Main interface"""
     init()
+    pro = camera_init()
     sensor_init()
     sensor_settle()
     drive()
     gpio.cleanup()
+    os.killpg(os.getpgid(pro.pid), signal.SIGTERM)
 
 
 if __name__ == '__main__':
