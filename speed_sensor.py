@@ -101,19 +101,11 @@ class SpeedSensor():
         """Handle signals"""
         self.interrupt = True
 
-def main(distance_cm):
-    """Main interface"""
-    speed_sensor = SpeedSensor()
-    speed_sensor.set_in_pin(22)
-    speed_sensor.set_pulse(0)
-    speed_sensor.set_radius(3.175)
-    speed_sensor.set_circumference((2 * math.pi) * speed_sensor.radius)
-    speed_sensor.speed_init()
-    speed_sensor.init_interrupt()
-    signal.signal(signal.SIGINT, speed_sensor.signal_handler)
-    time.sleep(2)
+def forward(speed_sensor, distance_cm):
+    """Drive car forward"""
     GPIO.output(15, GPIO.HIGH)
     GPIO.output(7, GPIO.HIGH)
+
     while speed_sensor.pulse / float(20) * speed_sensor.circumference < float(distance_cm):
         if speed_sensor.interrupt:
             break
@@ -121,6 +113,45 @@ def main(distance_cm):
     
     GPIO.output(15, GPIO.LOW)
     GPIO.output(7, GPIO.LOW)
+
+def reverse(speed_sensor, distance_cm):
+    """Drive car in reverse"""
+    GPIO.output(13, GPIO.HIGH)
+    GPIO.output(11, GPIO.HIGH)
+
+    while speed_sensor.pulse / float(20) * speed_sensor.circumference < float(distance_cm):
+        if speed_sensor.interrupt:
+            break
+        time.sleep(.1)
+    
+    GPIO.output(13, GPIO.LOW)
+    GPIO.output(11, GPIO.LOW)
+
+def left():
+    """Drive car left"""
+    GPIO.output(15, GPIO.HIGH)
+    GPIO.output(11, GPIO.HIGH)
+    time.sleep(.15)
+    GPIO.output(15, GPIO.LOW)
+    GPIO.output(11, GPIO.LOW)
+
+def right():
+    """Drive car right"""
+    GPIO.output(13, GPIO.HIGH)
+    GPIO.output(7, GPIO.HIGH)
+    time.sleep(.15)
+    GPIO.output(13, GPIO.LOW)
+    GPIO.output(7, GPIO.LOW)
+
+def init():
+    """Initialize car for driving"""
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(7, GPIO.OUT)
+    GPIO.setup(11, GPIO.OUT)
+    GPIO.setup(13, GPIO.OUT)
+    GPIO.setup(15, GPIO.OUT)
+
+def cleanup():
+    """Clean up"""
     GPIO.cleanup()
-    print(speed_sensor.pulse / float(20) * speed_sensor.circumference, distance_cm)
 
