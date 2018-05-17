@@ -3,7 +3,6 @@ import signal
 import time
 import math
 
-
 class SpeedSensor():
     def __init__(self):
         self.in_pin = ''
@@ -81,6 +80,10 @@ class SpeedSensor():
         """Initialize GPIO"""
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.in_pin, GPIO.IN)
+        GPIO.setup(7, GPIO.OUT)
+        GPIO.setup(11, GPIO.OUT)
+        GPIO.setup(13, GPIO.OUT)
+        GPIO.setup(15, GPIO.OUT)
 
     def init_interrupt(self):
         """Initialize interrupt"""
@@ -98,25 +101,48 @@ class SpeedSensor():
         """Handle signals"""
         self.interrupt = True
 
+    def forward(self, distance_cm):
+        """Drive car forward"""
+        GPIO.output(15, GPIO.HIGH)
+        GPIO.output(7, GPIO.HIGH)
 
-if __name__ == '__main__':
-    speed_sensor = SpeedSensor()
-    speed_sensor.set_in_pin(22)
-    speed_sensor.set_dist_meas(0.00)
-    speed_sensor.set_elapse(0)
-    speed_sensor.set_pulse(0)
-    speed_sensor.set_rotations(0)
-    speed_sensor.set_radius(3.175)
-    speed_sensor.set_circumference((2 * math.pi) * speed_sensor.radius)
-    speed_sensor.set_start_timer()
-    speed_sensor.speed_init()
-    speed_sensor.init_interrupt()
-    signal.signal(signal.SIGINT, speed_sensor.signal_handler)
-    while True:
-        if speed_sensor.interrupt:
-            print("")
-            print(speed_sensor.pulse / float(20), speed_sensor.circumference / 2.54,
-                 (speed_sensor.pulse / float(20)) * (speed_sensor.circumference / 2.54),
-                 speed_sensor.pulse / float(20) * speed_sensor.circumference)
-            break
-        time.sleep(1)
+        while self.pulse / float(20) * self.circumference < float(distance_cm):
+            if self.interrupt:
+                break
+            time.sleep(.1)
+        
+        GPIO.output(15, GPIO.LOW)
+        GPIO.output(7, GPIO.LOW)
+
+    def reverse(self, distance_cm):
+        """Drive car in reverse"""
+        GPIO.output(13, GPIO.HIGH)
+        GPIO.output(11, GPIO.HIGH)
+
+        while self.pulse / float(20) * self.circumference < float(distance_cm):
+            if self.interrupt:
+                break
+            time.sleep(.1)
+        
+        GPIO.output(13, GPIO.LOW)
+        GPIO.output(11, GPIO.LOW)
+
+    def left(self):
+        """Drive car left"""
+        GPIO.output(15, GPIO.HIGH)
+        GPIO.output(11, GPIO.HIGH)
+        time.sleep(.15)
+        GPIO.output(15, GPIO.LOW)
+        GPIO.output(11, GPIO.LOW)
+
+    def right(self):
+        """Drive car right"""
+        GPIO.output(13, GPIO.HIGH)
+        GPIO.output(7, GPIO.HIGH)
+        time.sleep(.15)
+        GPIO.output(13, GPIO.LOW)
+        GPIO.output(7, GPIO.LOW)
+
+    def cleanup(self):
+        """Clean up"""
+        GPIO.cleanup()
