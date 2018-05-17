@@ -1,8 +1,8 @@
+import json
 import math
 import signal
 import time
-import speed_sensor
-from speed_sensor import SpeedSensor
+from SpeedSensor import SpeedSensor
 
 class Train():
     """Train robot to follow route"""
@@ -11,6 +11,7 @@ class Train():
         """Constructor"""
         self.current_direction = ''
         self.current_distance = ''
+        self.path = []
         self.speed_sensor = SpeedSensor()
         self.speed_sensor.set_in_pin(22)
         self.speed_sensor.set_pulse(0)
@@ -26,25 +27,19 @@ class Train():
         self.current_direction = input("Which way? > ")
         if self.current_direction == 'forward' or self.current_direction == 'reverse':
             self.current_distance = input("How far (cm)? > ")
+            self.path.append({
+                'direction': self.current_direction,
+                'distance': self.current_distance
+            })
+        else:
+            self.path.append({
+                'direction': self.current_direction
+            })
 
-    def drive(self):
-        """Drive"""
-        speed_sensor.straight(self.speed_sensor, self.current_direction, self.current_distance)
-
-if __name__ == '__main__':
-    train = Train()
-    training = True
-    while training:
-        train.get_current_direction()
-        train.speed_sensor.set_pulse(0)
-        if train.current_direction == 'forward':
-            speed_sensor.forward(train.speed_sensor, train.current_distance)
-        elif train.current_direction == 'reverse':
-            speed_sensor.reverse(train.speed_sensor, train.current_distance)
-        elif train.current_direction == 'left':
-            speed_sensor.left()
-        elif train.current_direction == 'right':
-            speed_sensor.right()
-        elif train.current_direction == 'quit':
-            speed_sensor.cleanup()
-            training = False
+    def save_path_to_json(self):
+        """Save path to JSON"""
+        json_obj = {
+            'path': self.path
+        }
+        with open('path.json', 'w+') as outfile:
+            json.dump(json_obj, outfile)

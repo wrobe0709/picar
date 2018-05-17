@@ -101,57 +101,48 @@ class SpeedSensor():
         """Handle signals"""
         self.interrupt = True
 
-def forward(speed_sensor, distance_cm):
-    """Drive car forward"""
-    GPIO.output(15, GPIO.HIGH)
-    GPIO.output(7, GPIO.HIGH)
+    def forward(self, distance_cm):
+        """Drive car forward"""
+        GPIO.output(15, GPIO.HIGH)
+        GPIO.output(7, GPIO.HIGH)
 
-    while speed_sensor.pulse / float(20) * speed_sensor.circumference < float(distance_cm):
-        if speed_sensor.interrupt:
-            break
-        time.sleep(.1)
-    
-    GPIO.output(15, GPIO.LOW)
-    GPIO.output(7, GPIO.LOW)
+        while self.pulse / float(20) * self.circumference < float(distance_cm):
+            if self.interrupt:
+                break
+            time.sleep(.1)
+        
+        GPIO.output(15, GPIO.LOW)
+        GPIO.output(7, GPIO.LOW)
 
-def reverse(speed_sensor, distance_cm):
-    """Drive car in reverse"""
-    GPIO.output(13, GPIO.HIGH)
-    GPIO.output(11, GPIO.HIGH)
+    def reverse(self, distance_cm):
+        """Drive car in reverse"""
+        GPIO.output(13, GPIO.HIGH)
+        GPIO.output(11, GPIO.HIGH)
 
-    while speed_sensor.pulse / float(20) * speed_sensor.circumference < float(distance_cm):
-        if speed_sensor.interrupt:
-            break
-        time.sleep(.1)
-    
-    GPIO.output(13, GPIO.LOW)
-    GPIO.output(11, GPIO.LOW)
+        while self.pulse / float(20) * self.circumference < float(distance_cm):
+            if self.interrupt:
+                break
+            time.sleep(.1)
+        
+        GPIO.output(13, GPIO.LOW)
+        GPIO.output(11, GPIO.LOW)
 
-def left():
-    """Drive car left"""
-    GPIO.output(15, GPIO.HIGH)
-    GPIO.output(11, GPIO.HIGH)
-    time.sleep(.15)
-    GPIO.output(15, GPIO.LOW)
-    GPIO.output(11, GPIO.LOW)
+    def left(self):
+        """Drive car left"""
+        GPIO.output(15, GPIO.HIGH)
+        GPIO.output(11, GPIO.HIGH)
+        time.sleep(.15)
+        GPIO.output(15, GPIO.LOW)
+        GPIO.output(11, GPIO.LOW)
 
-def right():
-    """Drive car right"""
-    GPIO.output(13, GPIO.HIGH)
-    GPIO.output(7, GPIO.HIGH)
-    time.sleep(.15)
-    GPIO.output(13, GPIO.LOW)
-    GPIO.output(7, GPIO.LOW)
+    def right(self):
+        """Drive car right"""
+        GPIO.output(13, GPIO.HIGH)
+        GPIO.output(7, GPIO.HIGH)
+        time.sleep(.15)
+        GPIO.output(13, GPIO.LOW)
+        GPIO.output(7, GPIO.LOW)
 
-def init():
-    """Initialize car for driving"""
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(7, GPIO.OUT)
-    GPIO.setup(11, GPIO.OUT)
-    GPIO.setup(13, GPIO.OUT)
-    GPIO.setup(15, GPIO.OUT)
-
-def cleanup():
-    """Clean up"""
-    GPIO.cleanup()
-
+    def cleanup(self):
+        """Clean up"""
+        GPIO.cleanup()
